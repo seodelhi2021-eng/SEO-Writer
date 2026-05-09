@@ -264,13 +264,39 @@ ARTICLE TO REVIEW
 ${phase3Output}`;
 }
 
-export function buildRevisionUserMessage(phase2Output: string, failedScore: 'outlineQuality' | 'seoPotential'): string {
-  const scoreName = failedScore === 'outlineQuality' ? 'Outline Quality' : 'SEO Ranking Potential';
-  return `The ${scoreName} score on the previous outline was below 90. Identify the specific weakness, revise the outline to address it, and re-score both dimensions. Output the revised outline and both new scores.
+export function buildRevisionUserMessage(
+  phase2Output: string,
+  failedScore: 'outlineQuality' | 'seoPotential' | 'external',
+  externalFeedback?: string
+): string {
+  let reasonStatement = '';
+  if (failedScore === 'outlineQuality') {
+    reasonStatement = 'The Outline Quality score on the previous outline was below 90.';
+  } else if (failedScore === 'seoPotential') {
+    reasonStatement = 'The SEO Ranking Potential score on the previous outline was below 90.';
+  } else {
+    reasonStatement = 'External feedback from another AI reviewer flagged weaknesses in the previous outline.';
+  }
+
+  let msg = `${reasonStatement} Identify the specific weaknesses, revise the outline to address them, and re-score both dimensions. Output the revised outline and both new scores.
 
 ═══════════════════════════════════════════════════════════
 PREVIOUS OUTLINE OUTPUT
 ═══════════════════════════════════════════════════════════
 
 ${phase2Output}`;
+
+  if (externalFeedback && externalFeedback.trim()) {
+    msg += `
+
+═══════════════════════════════════════════════════════════
+EXTERNAL FEEDBACK FROM ANOTHER AI REVIEWER
+Take this feedback seriously. Address each specific weakness
+named below. Do not dismiss or minimize the feedback.
+═══════════════════════════════════════════════════════════
+
+${externalFeedback.trim()}`;
+  }
+
+  return msg;
 }

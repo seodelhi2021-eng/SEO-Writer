@@ -22,6 +22,29 @@ interface Props {
   articleIndex: number;
 }
 
+const CHATGPT_SCORING_PROMPT = `You are an SEO content strategist evaluating a competitor article outline for its likelihood to rank in Google's top 3 for the target keyword. Be critical and honest. Do not inflate.
+
+Score the outline below across six dimensions:
+
+1. Search intent alignment — does it match what users actually search for? (/17)
+2. Content structure & headings — are H2s/H3s well-organized and keyword-rich? (/17)
+3. Topic coverage & depth — does it comprehensively cover the subject? (/17)
+4. E-E-A-T signals — experience, expertise, authoritativeness, trustworthiness (/17)
+5. Keyword optimization — natural use of primary and secondary keywords (/16)
+6. Competitor edge — would it stand out against what's already ranking? (/16)
+
+Provide a total out of 100.
+
+Also state:
+- The 3 weakest elements of this outline
+- What's missing that top-ranking articles would include
+- Whether you would approve this outline or request revision (threshold: 85/100)
+
+PRIMARY KEYWORD: [paste keyword]
+
+OUTLINE TO EVALUATE:
+[paste Phase 2 output]`;
+
 export function PhaseTab({ phase, articleIndex }: Props) {
   const provider = useStore((s) => s.provider);
   const apiKey = useStore((s) => s.apiKeys[s.provider]);
@@ -30,6 +53,7 @@ export function PhaseTab({ phase, articleIndex }: Props) {
   const setPhaseOutput = useStore((s) => s.setPhaseOutput);
   const setPhase2Scores = useStore((s) => s.setPhase2Scores);
   const setPhase2ManualOverride = useStore((s) => s.setPhase2ManualOverride);
+  const setPhase2ExternalFeedback = useStore((s) => s.setPhase2ExternalFeedback);
   const approvePhase = useStore((s) => s.approvePhase);
   const setFactualPassOutput = useStore((s) => s.setFactualPassOutput);
   const markComplete = useStore((s) => s.markComplete);
@@ -37,11 +61,12 @@ export function PhaseTab({ phase, articleIndex }: Props) {
   const [loading, setLoading] = useState(false);
   const [loadingLabel, setLoadingLabel] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [showScoringPrompt, setShowScoringPrompt] = useState(false);
 
   const currentOutput =
     phase === 1 ? article.phase1Output : phase === 2 ? article.phase2Output : article.phase3Output;
 
-  const runPhase = async (isRevision = false) => {
+  const runPhase = async (revisionReason?: 'outlineQuality' | 'seoPotential' | 'external') => {
     setError(null);
     setLoading(true);
 
@@ -57,12 +82,12 @@ export function PhaseTab({ phase, articleIndex }: Props) {
       } else if (phase === 2) {
         if (!article.phase1Output) throw new Error('Phase 1 output missing');
         systemPrompt = PHASE_2_SYSTEM;
-        if (isRevision && article.phase2Output) {
-          const failedScore: 'outlineQuality' | 'seoPotential' =
-            article.phase2OutlineScore !== null && article.phase2OutlineScore < 90
-              ? 'outlineQuality'
-              : 'seoPotential';
-          userMessage = buildRevisionUserMessage(article.phase2Output, failedScore);
+        if (revisionReason && article.phase2Output) {
+          userMessage = buildRevisionUserMessage(
+            article.phase2Output,
+            revisionReason,
+            revisionReason === 'external' ? article.phase2ExternalFeedback : undefined
+          );
           label = `${providerLabel} is revising the outline...`;
         } else {
           userMessage = buildPhase2UserMessage(article.keyword, article.phase1Output);
@@ -140,7 +165,29 @@ export function PhaseTab({ phase, articleIndex }: Props) {
 
   const handleRerun = () => {
     if (currentOutput && !confirm('Re-run will overwrite existing output. Continue?')) return;
-    runPhase(false);
+    runPhase();
+  };
+
+  const copyScoringPrompt = async () => {
+    const filled = CHATGPT_SCORING_PROMPT
+      .replace('[paste keyword]', article.keyword)
+      .replace('[paste Phase 2 output]', article.phase2Output || '');
+    try {
+      await navigator.clipboard.writeText(filled);
+      toast.success('Scoring prompt copied. Paste into ChatGPT or another AI.');
+    } catch {
+      toast.error('Copy failed. Select the text manually.');
+    }
+  };
+
+  const copyOutlineOnly = async () => {
+    if (!article.phase2Output) return;
+    try {
+      await navigator.clipboard.writeText(article.phase2Output);
+      toast.success('Outline copied to clipboard.');
+    } catch {
+      toast.error('Copy failed.');
+    }
   };
 
   const outlineScore = article.phase2OutlineScore;
@@ -152,13 +199,15 @@ export function PhaseTab({ phase, articleIndex }: Props) {
     (outlineScore !== null && outlineScore < 90) ||
     (seoScore !== null && seoScore < 90);
 
+  const hasExternalFeedback = article.phase2ExternalFeedback.trim().length > 0;
+
   return (
     <div className="p-6">
       {error && (
         <div className="mb-4">
           <ErrorBanner
             message={error}
-            onRetry={() => runPhase(false)}
+            onRetry={() => runPhase()}
             onDismiss={() => setError(null)}
           />
         </div>
@@ -173,7 +222,7 @@ export function PhaseTab({ phase, articleIndex }: Props) {
 
       {!currentOutput && !loading && (
         <button
-          onClick={() => runPhase(false)}
+          onClick={() => runPhase()}
           disabled={loading || !apiKey}
           className="px-5 py-2.5 rounded-md bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 disabled:bg-gray-300"
         >
@@ -201,13 +250,85 @@ export function PhaseTab({ phase, articleIndex }: Props) {
             className="w-full font-mono text-xs border border-gray-300 rounded-md p-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
           />
 
-          {phase === 2 && needsRevision && (
+          {phase === 2 && (
+            <div className="mt-5 border-t border-gray-200 pt-5">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-sm font-semibold text-gray-700">
+                  External Feedback Cross-Check (optional)
+                </h4>
+                <button
+                  onClick={() => setShowScoringPrompt(!showScoringPrompt)}
+                  className="text-xs text-blue-600 hover:text-blue-800"
+                >
+                  {showScoringPrompt ? 'Hide instructions' : 'How does this work?'}
+                </button>
+              </div>
+
+              {showScoringPrompt && (
+                <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md text-xs text-gray-700 space-y-2">
+                  <p>
+                    Cross-check this outline with a different AI (ChatGPT, Gemini, etc.)
+                    to catch weaknesses {providerLabel} may have missed in its self-scoring.
+                  </p>
+                  <ol className="list-decimal list-inside space-y-1 ml-2">
+                    <li>Click <strong>Copy Scoring Prompt</strong> below</li>
+                    <li>Paste into ChatGPT (chat.openai.com) or Gemini</li>
+                    <li>Copy the response back into the feedback textarea below</li>
+                    <li>Click <strong>Revise with External Feedback</strong></li>
+                    <li>{providerLabel} will revise the outline addressing the specific issues</li>
+                  </ol>
+                </div>
+              )}
+
+              <div className="flex gap-2 mb-3">
+                <button
+                  onClick={copyScoringPrompt}
+                  className="text-xs px-3 py-1.5 rounded border border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium"
+                >
+                  Copy Scoring Prompt (for ChatGPT/Gemini)
+                </button>
+                <button
+                  onClick={copyOutlineOnly}
+                  className="text-xs px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50"
+                >
+                  Copy Outline Only
+                </button>
+              </div>
+
+              <textarea
+                value={article.phase2ExternalFeedback}
+                onChange={(e) => setPhase2ExternalFeedback(articleIndex, e.target.value)}
+                placeholder="Paste ChatGPT's / Gemini's scoring and feedback here. Then click Revise with External Feedback below."
+                rows={8}
+                className="w-full font-mono text-xs border border-gray-300 rounded-md p-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+              />
+
+              {hasExternalFeedback && (
+                <div className="mt-3">
+                  <button
+                    onClick={() => runPhase('external')}
+                    disabled={loading}
+                    className="px-4 py-2 rounded-md bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 disabled:bg-gray-300"
+                  >
+                    Revise with External Feedback
+                  </button>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {providerLabel} will rewrite the outline using the feedback above.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {phase === 2 && needsRevision && !hasExternalFeedback && (
             <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
               <p className="text-sm text-yellow-800 mb-2">
                 One or both scores are below 90. Revise before proceeding.
               </p>
               <button
-                onClick={() => runPhase(true)}
+                onClick={() => runPhase(
+                  outlineScore !== null && outlineScore < 90 ? 'outlineQuality' : 'seoPotential'
+                )}
                 className="px-3 py-1.5 rounded bg-yellow-600 text-white text-xs hover:bg-yellow-700"
               >
                 Revise Outline

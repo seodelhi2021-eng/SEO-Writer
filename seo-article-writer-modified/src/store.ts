@@ -14,6 +14,7 @@ export interface Article {
   phase2OutlineScore: number | null;
   phase2SeoScore: number | null;
   phase2ManualOverride: boolean;
+  phase2ExternalFeedback: string;
   phase2ApprovedAt: number | null;
   phase3Output: string | null;
   phase3FactualPassOutput: string | null;
@@ -37,6 +38,7 @@ interface AppState {
   setPhaseOutput: (articleIdx: number, phase: 1 | 2 | 3, output: string) => void;
   setPhase2Scores: (articleIdx: number, outline: number | null, seo: number | null) => void;
   setPhase2ManualOverride: (articleIdx: number, value: boolean) => void;
+  setPhase2ExternalFeedback: (articleIdx: number, feedback: string) => void;
   approvePhase: (articleIdx: number, phase: 1 | 2) => void;
   setFactualPassOutput: (articleIdx: number, output: string) => void;
   markComplete: (articleIdx: number) => void;
@@ -55,6 +57,7 @@ const emptyArticle = (index: number): Article => ({
   phase2OutlineScore: null,
   phase2SeoScore: null,
   phase2ManualOverride: false,
+  phase2ExternalFeedback: '',
   phase2ApprovedAt: null,
   phase3Output: null,
   phase3FactualPassOutput: null,
@@ -111,6 +114,13 @@ export const useStore = create<AppState>()(
           )
         })),
 
+      setPhase2ExternalFeedback: (idx, feedback) =>
+        set((state) => ({
+          articles: state.articles.map((a, i) =>
+            i === idx ? { ...a, phase2ExternalFeedback: feedback } : a
+          )
+        })),
+
       approvePhase: (idx, phase) =>
         set((state) => ({
           articles: state.articles.map((a, i) => {
@@ -149,19 +159,32 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'seo-article-writer',
-      version: 2,
-      // Migrate old persisted state (single `apiKey` field) into new shape.
+      version: 3,
+      // Migrate old persisted state into the current shape.
+      // v1 -> v2: single `apiKey` -> per-provider `apiKeys`.
+      // v2 -> v3: add `phase2ExternalFeedback` default to each article.
       migrate: (persistedState: any, fromVersion: number) => {
-        if (fromVersion < 2 && persistedState && typeof persistedState === 'object') {
-          const oldKey = typeof persistedState.apiKey === 'string' ? persistedState.apiKey : '';
-          return {
-            ...persistedState,
+        let state = persistedState;
+        if (fromVersion < 2 && state && typeof state === 'object') {
+          const oldKey = typeof state.apiKey === 'string' ? state.apiKey : '';
+          state = {
+            ...state,
             provider: 'anthropic',
             apiKeys: { anthropic: oldKey, deepseek: '' },
             apiKey: undefined
           };
         }
-        return persistedState;
+        if (fromVersion < 3 && state && typeof state === 'object' && Array.isArray(state.articles)) {
+          state = {
+            ...state,
+            articles: state.articles.map((a: any) => ({
+              ...a,
+              phase2ExternalFeedback:
+                typeof a?.phase2ExternalFeedback === 'string' ? a.phase2ExternalFeedback : ''
+            }))
+          };
+        }
+        return state;
       }
     }
   )
