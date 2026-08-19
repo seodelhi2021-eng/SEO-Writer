@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '../store';
-import { callLLM, PROVIDERS } from '../api';
+import { callLLM, PROVIDERS, LLMOptions } from '../api';
 import {
   PHASE_1_SYSTEM,
   PHASE_2_SYSTEM,
@@ -100,8 +100,17 @@ export function PhaseTab({ phase, articleIndex }: Props) {
         label = `${providerLabel} is writing the article...`;
       }
 
+      let llmOptions: LLMOptions;
+      if (phase === 1) {
+        llmOptions = { thinking: true, maxTokens: 16000, temperature: 0.3 };
+      } else if (phase === 2) {
+        llmOptions = { thinking: true, maxTokens: 20000, temperature: 0.3 };
+      } else {
+        llmOptions = { thinking: false, maxTokens: 24000, temperature: 0.7 };
+      }
+
       setLoadingLabel(label);
-      const output = await callLLM(provider, apiKey, systemPrompt, userMessage);
+      const output = await callLLM(provider, apiKey, systemPrompt, userMessage, llmOptions);
       setPhaseOutput(articleIndex, phase, output);
 
       if (phase === 2) {
@@ -129,7 +138,8 @@ export function PhaseTab({ phase, articleIndex }: Props) {
         provider,
         apiKey,
         FACTUAL_PASS_SYSTEM,
-        buildFactualPassUserMessage(article.phase3Output)
+        buildFactualPassUserMessage(article.phase3Output),
+        { thinking: true, maxTokens: 24000, temperature: 0.2 }
       );
       setFactualPassOutput(articleIndex, output);
     } catch (e: any) {

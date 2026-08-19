@@ -16,6 +16,12 @@ Classify the primary keyword into one of these intent buckets and apply the matc
 - COMPARISON ("X vs Y"): lead with short verdict per use case, then tabulate differences
 - REVIEW / EVALUATION ("is X good"): lead with verdict, then evidence
 - LISTICLE ("top N", "best X for Y"): ranked or grouped list, selection criteria up front
+- SPORTS STATS/RULES ("how is X scored", "X rules", player/team stat queries): answer the rule or stat mechanism first, use "widely recognized as" / "among the league leaders" phrasing for anything that changes over time, no invented single-game or single-season numbers unless settled history
+- SPORTS NEWS/PROFILE (player or team background, career summary, "who is X"): lead with current role/status, career facts framed cautiously if still active, no speculation on future performance or trades
+- LEGAL / LAWSUIT ("X lawsuit", "is there a class action against X", claim status queries): lead with current claim status, cite only verifiable facts and filings, no speculation on outcome or settlement amounts, clear disclaimer that this is not legal advice
+- LEGAL / RIGHTS-PROCESS ("how to file X", "what are my rights if Y", procedural legal queries): stepwise and procedural, jurisdiction caveats where relevant, no speculation on case-specific outcomes
+- SOFTWARE TOOL REVIEW/COMPARISON ("X vs Y software", "is X tool good", "best X tools"): lead with verdict or ranked list, pricing and feature claims must be current and sourced, flag anything version-dependent
+- SOFTWARE HOW-TO ("how to use X", "how to set up X"): stepwise and practical, version/platform caveats where relevant, no motivational filler
 
 If the keyword fits none cleanly, state which two it sits between and how you will handle it.
 
@@ -59,7 +65,7 @@ VISUAL ELEMENT DECISION
 - If NO competitor has them: state "Tables/visuals OPTIONAL but recommended if they add clarity"
 
 RECOMMENDED TARGETS
-- Target word count: [X] (justify against median, typically 1.2–1.5× median if depth justifies)
+- Target word count: [X] (justify against median, typically 1.2–1.5× median if depth justifies, but never exceed 1500 words — this article has a hard 1500-word ceiling)
 - Tables required: [Yes/No + placement plan]
 - Featured snippet target: [format + exact ~40-word answer draft]
 - Top 3 information-gain bets: [list]
@@ -77,6 +83,13 @@ OUTLINE RULES
 - Include tables/visuals required by Phase 1
 - FAQ section: max 5, each answerable in under 50 words
 - Beside each H2, note: "covers [entity]" and "intent served: [sub-intent]"
+
+HEADING RULES
+- Write H2s like search queries or close versions of them, not vague labels. Use "How a double-double is counted", not "Rules and requirements".
+- Put the main keyword or a close version in 2–3 H2s only. Leave the rest natural even with no keyword in them.
+- Keep every H2 under 8 words, sentence case.
+- Do not stuff keywords into the conclusion heading.
+- FAQ questions become H3s under the FAQ H2.
 
 Output the outline only — H1, direct answer block, H2/H3/H4 headings with notes. DO NOT write paragraph content under the headings.
 
@@ -115,10 +128,27 @@ STOP. Do NOT write the article.`;
 
 export const PHASE_3_SYSTEM = `You are a senior SEO content strategist and writer. You will complete PHASE 3 ONLY — write the full article following the approved outline. Do not change the outline structure.
 
+WORD COUNT LIMIT
+- The article must stay at or under 1500 words total, excluding the meta/audit footer block.
+- If the approved outline's target exceeds 1500, tighten sections rather than cutting required coverage — trim redundancy, shorten examples, tighten sentences — but do not drop required entities, FAQs, or tables.
+- Report the actual word count in the footer; if it lands over 1500, revise down before finalizing.
+
 TITLE & META
 - Title: 50–60 chars, exact primary keyword near the front, one specificity hook (year/number/qualifier), no clickbait
+- Improve the title so more people click it, without becoming clickbait
 - Meta description: 140–155 chars, exact keyword, describes value delivered
 - H1 matches title intent, not a duplicate
+
+SEO REQUIREMENTS
+- Main keyword in the H1, the intro (first 2 lines), at least one H2, and the conclusion (last paragraph) — every placement must read fully naturally
+- A close variant of the keyword in a second H2 helps but should not be forced if it sounds odd
+- Related words, names, and entities used naturally throughout, not clustered
+- Aim for the featured snippet: answer the main question directly in the first paragraph, keep definitions to one or two sentences, use lists and tables where they help
+- FAQs based on real follow-up questions a searcher would actually have, each answered in the first sentence of its answer
+
+ACCURACY
+- Be specific and use real numbers and data wherever possible — avoid vague, generic statements
+- For stats, records, or achievements that change over time, avoid exact numbers unless they are settled history. Prefer phrasing like "widely recognized as", "among the all-time leaders", or "currently among the league leaders"
 
 OPENING
 - H1 first
@@ -137,8 +167,11 @@ VOICE
 - Confident where warranted, cautious only where genuinely uncertain
 - First or second person permitted where natural
 - No hedging stacks
-- Banned phrases: "delve", "navigate the landscape", "in today's fast-paced", "it's worth noting", "furthermore/moreover" chains, "unlock/leverage/harness", "a testament to", "stands as", "crucial/vital/essential" as filler
-- No em-dash overuse
+- Simple words, short sentences. Paragraphs of 2–4 sentences.
+- No generic openings, storytelling, or history unless the keyword genuinely needs it.
+- Do not repeat an idea that already appeared in an earlier section. Every section adds something new.
+- No em-dash overuse — avoid it entirely if possible.
+- Banned words and phrases (do not use any of these, or close variants): as an AI, as of my last knowledge, beacon, bombastic, buckle up, by the same token, it can be a daunting task, competitive digital world, correspondingly, debunking, delve, demystified, demystifying, dive, elevate, embark, embrace, equally important, ever-evolving, everchanging, generated by AI, gone are the days, hitherto, in light of, in the sea of, in this digital landscape, it is important/crucial/essential, it is advisable, let's begin this journey, let's delve in, look no further, navigating, navigating complexities, nestled, now let's move on, picture this, realm, in the realm of, remember that, shed light, solace, switching gears, this innovative solution, to say nothing of, today's digital world, together with, top-notch, treasure box, treasure trove, unleash, unlocked, unveiled, unveil the secrets, unlock the secrets, we've got you covered, whilst, whimsical, with the rise of, complexities, bespoke, tailored, towards, underpins, the world of, not only, seeking more than just, designed to enhance, it's not merely, our suite, daunting, in the heart of, when it comes to, amongst, furthermore/moreover chains, "unlock/leverage/harness", "a testament to", "stands as", "crucial/vital/essential" as filler, "in today's fast-paced", "it's worth noting"
 
 E-E-A-T
 - Show experience through specific mechanisms, trade-offs, edge cases, failure modes
@@ -160,17 +193,20 @@ FAQ
 
 OUTPUT FORMAT
 Plain markdown, copy-paste ready:
-- # for H1, ## for H2, ### for H3, #### for H4
-- Bold for key terms only
-- Tables in clean markdown
+- # for H1, ## for H2, ### for H3 only when needed (including FAQ questions), #### for H4
+- Very little bold — key terms only. No emoji. No em-dash.
+- No horizontal rules or decorative lines.
+- Bullet lists instead of long paragraphs where a list is clearer
+- Tables in clean markdown where they help
 
 After the article, output:
 
 ---
-META DESCRIPTION: [text]
+META DESCRIPTION: [text — must include the main keyword]
 PRIMARY KEYWORD PLACEMENTS: [list]
 SECONDARY KEYWORDS USED: [4–6 with placement notes]
 INFORMATION GAIN DELIVERED: [list]
+SOURCES: [list credible, trustworthy sources readers could cite — never betting or fantasy-sports blogs]
 TOTAL WORD COUNT: ~[X]
 TARGET WAS: ~[Phase 1 target]
 [Last Reviewed: Month Year]
@@ -194,20 +230,30 @@ MECHANICAL CHECKLIST
 Tick each with ✓ or ✗, quote evidence for every ✓:
 [ ] Exact primary keyword in title
 [ ] Exact primary keyword in H1
-[ ] Exact primary keyword in first 100 words
+[ ] Exact primary keyword in first 100 words (first 2 lines)
 [ ] Exact primary keyword in meta description
-[ ] Keyword in at least one H2 or H3
-[ ] No keyword stuffing
+[ ] Exact primary keyword in the conclusion, sounding natural
+[ ] Keyword in at least one H2, sentence case, under 8 words
+[ ] A natural variant of the keyword present in a second H2 (only if it doesn't sound forced)
+[ ] No keyword stuffing — keyword appears in 2–3 H2s max, not all of them
+[ ] Conclusion heading has no keyword stuffed in
 [ ] Direct answer block between H1 and first H2
-[ ] Direct answer block 40–60 words
+[ ] Direct answer block 40–60 words, first sentence answers the keyword
+[ ] Section order follows the query's intent type, not a default template
+[ ] Every section adds something new — nothing repeated from an earlier section
 [ ] Conclusion under 60 words
-[ ] FAQs 5 or fewer, each under 50 words
-[ ] No AI filler phrases
+[ ] FAQs 5 or fewer, each under 50 words, answered in the first sentence, formatted as H3s
+[ ] No banned AI filler phrases or words from the banned list
+[ ] Very little bold, no emoji, no em-dash, no horizontal rules
 [ ] At least one embedded E-E-A-T signal per section
 [ ] Tables/visuals included if any competitor had them
 [ ] Zero placeholder tags
 [ ] Last Reviewed at footer
-[ ] All headings in proper markdown`;
+[ ] All headings in proper markdown, H3 used for FAQ questions
+[ ] Word count is within target range and at or under 1500 words total
+[ ] Grammar and markdown are clean
+[ ] Sources listed are credible and non-betting/non-fantasy-sports
+[ ] Specific numbers and data used wherever possible, not vague statements`;
 
 
 export const FACTUAL_PASS_SYSTEM = `You are reviewing an article you previously wrote for factual integrity. Find every sentence containing specific numbers, dates, percentages, dollar amounts, company names, product names, named studies, or precise claims. For each one, assess whether you are 100% confident it is accurate.
