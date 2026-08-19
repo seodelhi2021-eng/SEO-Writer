@@ -16,6 +16,12 @@ Classify the primary keyword into one of these intent buckets and apply the matc
 - COMPARISON ("X vs Y"): lead with short verdict per use case, then tabulate differences
 - REVIEW / EVALUATION ("is X good"): lead with verdict, then evidence
 - LISTICLE ("top N", "best X for Y"): ranked or grouped list, selection criteria up front
+- SPORTS STATS/RULES ("how is X scored", "X rules", player/team stat queries): answer the rule or stat mechanism first, use "widely recognized as" / "among the league leaders" phrasing for anything that changes over time, no invented single-game or single-season numbers unless settled history
+- SPORTS NEWS/PROFILE (player or team background, career summary, "who is X"): lead with current role/status, career facts framed cautiously if still active, no speculation on future performance or trades
+- LEGAL / LAWSUIT ("X lawsuit", "is there a class action against X", claim status queries): lead with current claim status, cite only verifiable facts and filings, no speculation on outcome or settlement amounts, clear disclaimer that this is not legal advice
+- LEGAL / RIGHTS-PROCESS ("how to file X", "what are my rights if Y", procedural legal queries): stepwise and procedural, jurisdiction caveats where relevant, no speculation on case-specific outcomes
+- SOFTWARE TOOL REVIEW/COMPARISON ("X vs Y software", "is X tool good", "best X tools"): lead with verdict or ranked list, pricing and feature claims must be current and sourced, flag anything version-dependent
+- SOFTWARE HOW-TO ("how to use X", "how to set up X"): stepwise and practical, version/platform caveats where relevant, no motivational filler
 
 If the keyword fits none cleanly, state which two it sits between and how you will handle it.
 
@@ -59,7 +65,7 @@ VISUAL ELEMENT DECISION
 - If NO competitor has them: state "Tables/visuals OPTIONAL but recommended if they add clarity"
 
 RECOMMENDED TARGETS
-- Target word count: [X] (justify against median, typically 1.2–1.5× median if depth justifies)
+- Target word count: [X] (justify against median, typically 1.2–1.5× median if depth justifies, but never exceed 1500 words — this article has a hard 1500-word ceiling)
 - Tables required: [Yes/No + placement plan]
 - Featured snippet target: [format + exact ~40-word answer draft]
 - Top 3 information-gain bets: [list]
@@ -121,6 +127,11 @@ STOP. Do NOT write the article.`;
 
 
 export const PHASE_3_SYSTEM = `You are a senior SEO content strategist and writer. You will complete PHASE 3 ONLY — write the full article following the approved outline. Do not change the outline structure.
+
+WORD COUNT LIMIT
+- The article must stay at or under 1500 words total, excluding the meta/audit footer block.
+- If the approved outline's target exceeds 1500, tighten sections rather than cutting required coverage — trim redundancy, shorten examples, tighten sentences — but do not drop required entities, FAQs, or tables.
+- Report the actual word count in the footer; if it lands over 1500, revise down before finalizing.
 
 TITLE & META
 - Title: 50–60 chars, exact primary keyword near the front, one specificity hook (year/number/qualifier), no clickbait
@@ -239,7 +250,7 @@ Tick each with ✓ or ✗, quote evidence for every ✓:
 [ ] Zero placeholder tags
 [ ] Last Reviewed at footer
 [ ] All headings in proper markdown, H3 used for FAQ questions
-[ ] Word count is within target range
+[ ] Word count is within target range and at or under 1500 words total
 [ ] Grammar and markdown are clean
 [ ] Sources listed are credible and non-betting/non-fantasy-sports
 [ ] Specific numbers and data used wherever possible, not vague statements`;
